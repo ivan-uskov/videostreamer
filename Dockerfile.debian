@@ -1,17 +1,16 @@
 # -------- modules --------
-FROM golang:1.18-alpine AS modules
+FROM golang:1.18 AS modules
 
 COPY ./go.mod ./go.sum /
 RUN go mod download
 
 # -------- build binary --------
-FROM golang:1.18-alpine AS builder
+FROM golang:1.18 AS builder
 
-RUN apk --no-cache add build-base v4l-utils libvpx-dev
-RUN apk --no-cache add linux-headers
+RUN apt-get update
+RUN apt-get install -y v4l-utils libvpx-dev
 
-#RUN useradd -u 1001 appuser
-RUN adduser --disabled-password --uid 1001 appuser
+RUN useradd -u 1001 appuser
 
 COPY --from=modules /go/pkg /go/pkg
 COPY . /build
@@ -23,15 +22,14 @@ RUN GOARCH=amd64 GOOS=linux CGO_ENABLED=1 \
 RUN chmod +x ./bin/videostreamer
 
 # -------- build image --------
-FROM alpine:latest
+FROM debian:latest
 
-RUN apk --no-cache add ca-certificates
-RUN apk --no-cache add v4l-utils libvpx-dev
+RUN apt update
+RUN apt install -y ca-certificates
+RUN apt install -y v4l-utils libvpx-dev
 
 COPY --from=builder /etc/passwd /etc/passwd
-
-RUN addgroup -g 44 video_debian
-RUN addgroup appuser video_debian
+RUN usermod -a -G video appuser
 
 USER appuser
 

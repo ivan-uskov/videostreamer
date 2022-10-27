@@ -18,7 +18,10 @@ fmt:
 	go fmt ./src/...
 
 build: fmt
-	docker build . --force-rm
+	docker build --force-rm -t videostreamer .
 
 run:
 	go run videostreamer/src/cmd
+
+run_docker:
+	docker run -v /tmp/.X11-unix:/tmp/.X11-unix --ipc=host -e DISPLAY=$(DISPLAY) --privileged --env-file .env.local --device=/dev/video4 videostreamer
