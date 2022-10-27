@@ -36,9 +36,11 @@ func NewWebsocketClient(addr string, handler MessageHandler) WebsocketClient {
 }
 
 func (c *websocketClient) SendMessage(message []byte) {
+	log.WithField("m", string(message)).Debug("send msg to ws")
+
 	err := c.conn.WriteMessage(websocket.TextMessage, message)
 	if err != nil {
-		log.WithError(err).Fatal("write message")
+		log.WithError(err).Fatal("write message to ws error")
 	}
 }
 
@@ -54,11 +56,11 @@ func (c *websocketClient) readMessages() {
 	for {
 		_, message, err := c.conn.ReadMessage()
 		if err != nil || err == io.EOF {
-			log.WithError(err).Error("Error reading")
+			log.WithError(err).Error("Error reading ws")
 			return
 		}
 
-		log.WithField("m", message).Info("message from websocket")
+		log.WithField("m", string(message)).Info("got msg from ws")
 		if c.handler != nil {
 			c.handler(message)
 		}
