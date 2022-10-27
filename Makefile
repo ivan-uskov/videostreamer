@@ -17,11 +17,16 @@ lint:
 fmt:
 	go fmt ./src/...
 
-build: fmt
-	docker build --force-rm -t videostreamer .
+build_alpine: fmt
+	docker build -f Dockerfile.alpine --force-rm -t ivanuskov/videostreamer:alpine .
+
+build_debian: fmt
+	docker build -f Dockerfile.debian --force-rm -t ivanuskov/videostreamer:debian .
+
+build: build_alpine
 
 run:
 	go run videostreamer/src/cmd
 
 run_docker:
-	docker run -v /tmp/.X11-unix:/tmp/.X11-unix --ipc=host -e DISPLAY=$(DISPLAY) --privileged --env-file .env.local --device=/dev/video4 videostreamer
+	docker run -v /tmp/.X11-unix:/tmp/.X11-unix --ipc=host -e DISPLAY=$(DISPLAY) --privileged --env-file .env.local --device=/dev/video4 ivanuskov/videostreamer:alpine
